@@ -1,0 +1,19 @@
+SET NAMES UTF8;
+DROP DATABASE IF EXISTS todolist;
+CREATE DATABASE todolist CHARSET=UTF8;
+USE todolist;
+
+-- 创建用户表
+CREATE TABLE user(
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_name VARCHAR(50),
+  password VARCHAR(128)
+);
+
+-- 创建事项表
+CREATE TABLE list(
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  content VARCHAR(255),
+  status TINYINT
+);
