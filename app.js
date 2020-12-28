@@ -12,7 +12,7 @@ app.use(json());
 app.use(logger());
 
 // 显示执行的时间
-app.use(async (next) => {
+app.use(async (ctx, next) => {
     let start = new Date;
     await next();
     let ms = new Date - start;
