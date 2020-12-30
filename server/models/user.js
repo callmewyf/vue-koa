@@ -18,7 +18,19 @@ const getUserById = async function (id) {
   return userInfo;
 }
 
+// 通过用户名查找
+const getUserByName = async function (name) {
+  const userInfo = await User.findOne({
+    where: {
+      user_name: name
+    }
+  })
+
+  return userInfo;
+}
+
 module.exports = {
   getUserById,
+  getUserByName,
 }
 
