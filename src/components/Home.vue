@@ -2,7 +2,7 @@
   <div class="hello">
     <a-row type="flex" justify="center">
       <a-col :span="4">
-        <h4>欢迎{{username}}!你的待办事项是：</h4>
+        <h4>欢迎：{{username}}！你的待办事项是：</h4>
       </a-col>
     </a-row>
     <a-row type="flex" justify="center">
@@ -53,11 +53,14 @@
 </template>
 
 <script>
+const jwt = require('jsonwebtoken');
+
 export default {
   name: 'Home',
   data () {
     return {
       username: '',
+      id: '',
       todoThing: '',
       todoList: [],
       finishList: [],
@@ -95,12 +98,25 @@ export default {
       this.todoList.push(data[0]);
       this.hasWait = this.todoList.length ? true : false;
       this.hasData = this.finishList.length ? true : false;
+    },
+    getUserInfo() {
+      const token = sessionStorage.getItem('koa-token');
+      if (token) {
+        return jwt.decode(token);
+      } else {
+        return null;
+      }
     }
   },
   created() {
     this.$nextTick(() => {
       this.hasWait = this.todoList.length ? true : false;
       this.hasData = this.finishList.length ? true : false;
+
+      const userInfo = this.getUserInfo();
+      console.log(userInfo)
+      this.username = userInfo && userInfo.name;
+      this.id = userInfo && userInfo.id;
     })
   }
 }

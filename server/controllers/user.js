@@ -2,6 +2,7 @@ const user = require('../models/user');
 // jsonwebtoken 用于签发、解析 token
 // koa-jwt 用于路由权限控制
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const getUserInfo = async function (ctx, next) {
   const id = ctx.params.id;
@@ -15,7 +16,7 @@ const postUserAuth = async function (ctx, next) {
   const userInfo = await user.getUserByName(data.name);
 
   if (userInfo != null) {
-    if (userInfo.password != data.password) {
+    if (!bcrypt.compareSync(data.password, userInfo.password)) {
       ctx.response.body = {
         success: false,
         info: '密码错误！'
