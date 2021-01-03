@@ -14,10 +14,15 @@ Vue.use(Antd);
 
 Vue.prototype.$http = Axios;
 
-router.beforeEach((to, form, next) => {
+router.beforeEach((to, from, next) => {
   const token = sessionStorage.getItem('koa-token');
   if (token) {
-    next();
+    if (to.path == '/' || to.path == '/login') {
+      next('/home');
+    } else {
+      Vue.prototype.$http.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+      next();
+    }
   } else {
     if (to.path == '/' || to.path == '/login') {
       next();

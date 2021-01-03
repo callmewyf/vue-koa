@@ -106,6 +106,17 @@ export default {
       } else {
         return null;
       }
+    },
+    getTodolist() {
+      this.$http.get('/api/api/getTodolist/' + this.id).then(res => {
+        if (res.status == 200) {
+          this.todoList = res.data;
+          this.hasWait = this.todoList.length ? true : false;
+          this.hasData = this.finishList.length ? true : false;
+        } else {
+          this.$message.error('获取列表失败！');
+        }
+      })
     }
   },
   created() {
@@ -114,9 +125,10 @@ export default {
       this.hasData = this.finishList.length ? true : false;
 
       const userInfo = this.getUserInfo();
-      console.log(userInfo)
       this.username = userInfo && userInfo.name;
       this.id = userInfo && userInfo.id;
+
+      this.getTodolist();
     })
   }
 }
