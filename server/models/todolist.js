@@ -8,10 +8,11 @@ const TodolistDb = db.Todolist;
 
 const Todolist = require(todoModel)(TodolistDb, DataTypes);
 
-const getTodolistById = async function (id) {
+const getTodolistById = async function (id, status) {
     const todolist = await Todolist.findAll({
         where: {
-            user_id: id
+            user_id: id,
+            status: status
         },
         attributes: ['id', 'content', 'status']
     })
@@ -25,12 +26,37 @@ const createTodolist = async function (data) {
         content: data.content,
         status: data.status
     })
-    
+
+    return true;
+}
+
+const updateTodolist = async function (id, status) {
+    const data = await Todolist.findOne({
+        where: {
+            id: id
+        }
+    });
+    data.update({
+        status: status
+    })
+
+    return true;
+}
+
+const deleteTodolist = async function (id) {
+    await Todolist.destroy({
+        where: {
+            id: id
+        }
+    });
+
     return true;
 }
 
 module.exports = {
     getTodolistById,
-    createTodolist
+    createTodolist,
+    updateTodolist,
+    deleteTodolist
 }
 

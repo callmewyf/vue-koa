@@ -49,7 +49,7 @@ export default {
       this.form.validateFields((err, values) => {
         if (!err) {
           console.log('提交值', values);
-          this.$http.post('/api/auth/user', values).then(res => {
+          this.$http.post('/auth/user', values).then(res => {
             if (!res.data.success) {
               this.$message.error(res.data.info);
             } else {

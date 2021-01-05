@@ -14,35 +14,35 @@
       <a-col :span="4">
         <a-tabs default-active-key="1" @change="tabChange">
           <a-tab-pane key="1" tab="待办事项">
-            <ul v-if="hasWait">
+            <ul v-if="todoList.length">
               <li
-                v-for="(item, index) in todoList"
+                v-for="item in todoList"
                 :key="item.id"
                 style="text-align: left;font-size: 16px;font-weight: 600;"
                 >
                 <span>{{item.content}}</span>
-                <a-button type="danger" size="small" style="float: right;" @click="delStep(index)">删除</a-button> 
-                <a-button type="primary" size="small" style="float: right;margin-right: 10px;" @click="nextStep(index)">完成</a-button>
+                <a-button type="danger" size="small" style="float: right;" @click="delStep(item)">删除</a-button> 
+                <a-button type="primary" size="small" style="float: right;margin-right: 10px;" @click="nextStep(item)">完成</a-button>
                 <a-divider></a-divider>
               </li>
             </ul>
-            <div v-if="!hasWait">
+            <div v-if="!todoList.length">
               暂无待办事项
             </div>
           </a-tab-pane>
           <a-tab-pane key="2" tab="已完成事项" force-render>
-              <ul v-if="hasData">
+              <ul v-if="finishList.length">
                 <li
-                  v-for="(item, index) in finishList"
+                  v-for="item in finishList"
                   :key="item.id"
                   style="text-align: left;font-size: 16px;font-weight: 600;"
                   >
                   <s>{{item.content}}</s>
-                  <a-button type="primary" size="small" style="float: right;" @click="lastStep(index)">回退</a-button>
+                  <a-button type="primary" size="small" style="float: right;" @click="lastStep(item)">回退</a-button>
                   <a-divider></a-divider>
                 </li>
               </ul>
-              <div v-if="!hasData">
+              <div v-if="!finishList.length">
                 暂无已完成事项
               </div>
           </a-tab-pane>
@@ -64,40 +64,59 @@ export default {
       todoThing: '',
       todoList: [],
       finishList: [],
-      hasWait: true,
-      hasData: false,
     }
   },
   methods: {
     addTodo(e) {
       if (e.keyCode == 13) {
-        this.todoList.push({
-          id: this.todoList.length + 1,
-          content: this.todoThing
-        })
+        if (!this.todoThing) {
+          return;
+        }
+        const data = {
+          id: this.id,
+          content: this.todoThing,
+          status: 0
+        }
         this.todoThing = '';
-        this.hasWait = true;
+        this.$http.post('/api/createTodolist', data).then(res => {
+          if (res.status == 200) {
+            this.getTodolist(0);
+            this.$message.success('新增成功！');
+          } else {
+            this.$message.error('新增失败！');
+          }
+        }, err => {
+          this.$message.error('新增失败！');
+        })
       }
     },
-    tabChange() {
-
-    },
-    delStep(index) {
-      this.todoList.splice(index, 1);
-      if (!this.todoList.length) {
-        this.hasWait = false;
+    tabChange(val) {
+      if (val == 1) {
+        this.getTodolist(0);
+      } else {
+        this.getTodolist(1);
       }
     },
-    nextStep(index) {
-      let data = this.todoList.splice(index, 1);
-      this.finishList.push(data[0]);
-      this.hasData = true;
+    delStep(data) {
+      this.$http.get('/api/deleteTodolist/' + data.id).then(res => {
+        if (res.status == 200) {
+          this.getTodolist(0);
+        }
+      })
     },
-    lastStep(index) {
-      let data = this.finishList.splice(index, 1);
-      this.todoList.push(data[0]);
-      this.hasWait = this.todoList.length ? true : false;
-      this.hasData = this.finishList.length ? true : false;
+    nextStep(data) {
+      this.$http.get('/api/updateTodolist/' + data.id + '/1').then(res => {
+        if (res.status == 200) {
+          this.getTodolist(0);
+        }
+      })
+    },
+    lastStep(data) {
+      this.$http.get('/api/updateTodolist/' + data.id + '/0').then(res => {
+        if (res.status == 200) {
+          this.getTodolist(1);
+        }
+      })
     },
     getUserInfo() {
       const token = sessionStorage.getItem('koa-token');
@@ -107,12 +126,14 @@ export default {
         return null;
       }
     },
-    getTodolist() {
-      this.$http.get('/api/api/getTodolist/' + this.id).then(res => {
+    getTodolist(status) {
+      this.$http.get('/api/getTodolist/' + this.id + '/' + status).then(res => {
         if (res.status == 200) {
-          this.todoList = res.data;
-          this.hasWait = this.todoList.length ? true : false;
-          this.hasData = this.finishList.length ? true : false;
+          if (status == 0) {
+            this.todoList = res.data;
+          } else {
+            this.finishList = res.data;
+          }
         } else {
           this.$message.error('获取列表失败！');
         }
@@ -121,14 +142,11 @@ export default {
   },
   created() {
     this.$nextTick(() => {
-      this.hasWait = this.todoList.length ? true : false;
-      this.hasData = this.finishList.length ? true : false;
-
       const userInfo = this.getUserInfo();
       this.username = userInfo && userInfo.name;
       this.id = userInfo && userInfo.id;
 
-      this.getTodolist();
+      this.getTodolist(0);
     })
   }
 }
